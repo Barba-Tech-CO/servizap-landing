@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Send, Loader2, CheckCircle } from 'lucide-react';
 import { isValidWhatsApp, formatWhatsApp } from '../lib/validation';
 import { trackEvent } from '../lib/analytics';
+import { supabase } from '../lib/supabase';
 
 const SERVICE_OPTIONS = [
   'Climatização',
@@ -72,9 +73,13 @@ export function WaitlistForm({ compact = false }: { compact?: boolean }) {
 
     setSubmitting(true);
     try {
-      // Submit to Google Sheets via Google Forms or similar
-      // For now, simulate submission
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { error } = await supabase.from('waitlist_submissions').insert({
+        name: formData.name.trim(),
+        whatsapp: formData.whatsapp,
+        service_type: formData.serviceType,
+        team_size: compact ? '1' : formData.teamSize,
+      });
+      if (error) throw error;
       trackEvent({
         name: 'form_submit',
         properties: {
